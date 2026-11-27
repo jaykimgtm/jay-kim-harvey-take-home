@@ -1,8 +1,11 @@
-// Harvey take-home review: slide navigation.
-// Tabs are built from the <section class="slide"> elements (data-tab = label, data-tone = painted ground).
-// Keys: ← → ↑ ↓ PageUp PageDown Space move, Home/End, 1–9 jump, N notes, F full screen. Hash #n deep-links.
+// Harvey take-home review: deck runtime.
+// The slides live in deck.html, fetched at start so the web editor can save them. Tabs are built from the
+// <section class="slide"> elements: data-tab = tab label, data-tone = painted ground.
+// Keys: ← → ↑ ↓ PageUp PageDown Space move, Home/End, 1–9 jump, N notes, F full screen, R switch role,
+// E edit (asks for the save code; also ?edit in the URL). Hash #n or #slide-id deep-links.
 (() => {
-  const slides = Array.from(document.querySelectorAll(".slide"));
+  const html = document.documentElement;
+  const deck = document.getElementById("deck");
   const track = document.querySelector(".tabs__track");
   const ink = document.querySelector(".tabs__ink");
   const count = document.querySelector(".tabs__count");
@@ -13,11 +16,13 @@
   const notesBody = notes.querySelector(".notes-panel__body");
   const keys = document.querySelector(".keys");
   const pad = (n) => String(n).padStart(2, "0");
+  const editing = () => html.classList.contains("editing");
+  let slides = [];
+  let tabs = [];
   let index = -1;
 
   // ---------------------------------------------------------------- access gate
   // The boot script in <head> already set html[data-gate]. Only the salted SHA-256 is on the page.
-  const html = document.documentElement;
   const gate = document.getElementById("gate");
   const gateForm = document.getElementById("gate-form");
   const gateInput = document.getElementById("gate-code");
@@ -72,30 +77,38 @@
     }
   });
 
-  // Stagger order for reveals: DOM order inside each slide.
-  slides.forEach((slide, i) => {
-    slide.setAttribute("role", "tabpanel");
-    if (!slide.id) slide.id = `slide-${i + 1}`;
-    slide.classList.add("is-after");
-    let d = 0;
-    slide.querySelectorAll("[data-reveal], .line").forEach((el) => el.style.setProperty("--d", d++));
-  });
+  // ---------------------------------------------------------------- slides and tabs
+  function newId() {
+    return `slide-${Math.random().toString(36).slice(2, 8)}`;
+  }
 
-  // One tab per slide.
-  const tabs = slides.map((slide, i) => {
-    const tab = document.createElement("button");
-    tab.type = "button";
-    tab.className = "tab";
-    tab.id = `tab-${slide.id}`;
-    tab.setAttribute("role", "tab");
-    tab.setAttribute("aria-controls", slide.id);
-    tab.innerHTML = `<span class="tab__num">${pad(i + 1)}</span><span class="tab__label"></span>`;
-    tab.querySelector(".tab__label").textContent = slide.dataset.tab || `Slide ${i + 1}`;
-    tab.addEventListener("click", () => go(i));
-    slide.setAttribute("aria-labelledby", tab.id);
-    track.appendChild(tab);
-    return tab;
-  });
+  // (Re)reads the slides from the DOM: ids, stagger order for reveals, one tab per slide.
+  function prepare() {
+    slides = Array.from(deck.querySelectorAll(":scope > .slide"));
+    const seen = new Set();
+    slides.forEach((slide) => {
+      if (!slide.id || seen.has(slide.id)) slide.id = newId();
+      seen.add(slide.id);
+      slide.setAttribute("role", "tabpanel");
+      let d = 0;
+      slide.querySelectorAll("[data-reveal], .line").forEach((el) => el.style.setProperty("--d", d++));
+    });
+    track.querySelectorAll(".tab").forEach((t) => t.remove());
+    tabs = slides.map((slide, i) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "tab";
+      tab.id = `tab-${slide.id}`;
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-controls", slide.id);
+      tab.innerHTML = `<span class="tab__num">${pad(i + 1)}</span><span class="tab__label"></span>`;
+      tab.querySelector(".tab__label").textContent = slide.dataset.tab || `Slide ${i + 1}`;
+      tab.addEventListener("click", () => go(i));
+      slide.setAttribute("aria-labelledby", tab.id);
+      track.appendChild(tab);
+      return tab;
+    });
+  }
 
   function moveInk() {
     const tab = tabs[index];
@@ -110,11 +123,13 @@
     notesBody.textContent = text || "No notes for this slide.";
   }
 
-  function go(target) {
+  function go(target, force) {
+    if (!slides.length) return;
     const i = Math.max(0, Math.min(slides.length - 1, target));
-    if (i === index) return;
+    if (i === index && !force) return;
     const first = index < 0;
     index = i;
+    if (!first && !force && keys) keys.classList.add("is-hidden");
 
     slides.forEach((slide, k) => {
       slide.classList.toggle("is-active", k === i);
@@ -141,7 +156,16 @@
     showNotes();
 
     const hash = `#${i + 1}`;
-    if (location.hash !== hash) history.replaceState(null, "", hash);
+    if (location.hash !== hash) history.replaceState(null, "", location.pathname + location.search + hash);
+    deck.dispatchEvent(new CustomEvent("deck:change", { detail: { index: i } }));
+  }
+
+  // After the editor adds, removes or reorders slides.
+  function rebuild(target) {
+    const keep = typeof target === "number" ? target : Math.max(0, index);
+    prepare();
+    index = -1;
+    go(keep, true);
   }
 
   function fromHash() {
@@ -149,7 +173,7 @@
     if (!h) return 0;
     if (/^\d+$/.test(h)) return Number(h) - 1;
     const byId = slides.findIndex((s) => s.id === h);
-    return byId >= 0 ? byId : 0;
+    return byId >= 0 ? byId : Math.max(0, index);
   }
 
   function toggleNotes(force) {
@@ -164,10 +188,59 @@
     else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
   }
 
-  // Keyboard.
+  // Role switch (Part 1 questions): one role's panel at a time; R toggles it on the current slide.
+  function selectPanel(btn) {
+    const sw = btn.closest(".switch");
+    const scope = btn.closest(".slide");
+    if (!sw || !scope) return;
+    sw.querySelectorAll("[data-panel]").forEach((b) => b.setAttribute("aria-selected", b === btn ? "true" : "false"));
+    scope.querySelectorAll(".qs__panel").forEach((panel) => {
+      const on = panel.id === btn.dataset.panel;
+      if (on && !panel.classList.contains("is-current")) {
+        panel.classList.remove("is-replay");
+        void panel.offsetWidth; // restart the row stagger
+        panel.classList.add("is-replay");
+      }
+      panel.classList.toggle("is-current", on);
+      panel.inert = !on;
+      panel.setAttribute("aria-hidden", on ? "false" : "true");
+    });
+  }
+
+  // ---------------------------------------------------------------- editor (loaded on demand)
+  let editorLoading = null;
+  function loadEditor() {
+    if (window.DeckEditor) return Promise.resolve(window.DeckEditor);
+    if (editorLoading) return editorLoading;
+    editorLoading = new Promise((resolve, reject) => {
+      const v = (document.querySelector('script[src^="app.js"]').getAttribute("src").split("?v=")[1]) || "1";
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = `editor.css?v=${v}`;
+      document.head.appendChild(css);
+      const js = document.createElement("script");
+      js.src = `editor.js?v=${v}`;
+      js.onload = () => resolve(window.DeckEditor);
+      js.onerror = () => {
+        editorLoading = null;
+        reject(new Error("editor.js did not load"));
+      };
+      document.body.appendChild(js);
+    });
+    return editorLoading;
+  }
+  function openEditor() {
+    if (!isOpen() || editing()) return;
+    loadEditor()
+      .then((ed) => ed.open())
+      .catch(() => {});
+  }
+
+  // ---------------------------------------------------------------- input
   window.addEventListener("keydown", (e) => {
-    if (!isOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
+    if (e.defaultPrevented || !isOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    if (t && t.closest && t.closest('input, textarea, select, [contenteditable="true"], .ed-ui')) return;
     const k = e.key;
     if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || k === " ") {
       e.preventDefault();
@@ -187,24 +260,24 @@
       toggleNotes();
     } else if (k === "f" || k === "F") {
       toggleFullscreen();
+    } else if (k === "r" || k === "R") {
+      const other = slides[index] && slides[index].querySelector('.switch [aria-selected="false"]');
+      if (other) selectPanel(other);
+    } else if (k === "e" || k === "E") {
+      openEditor();
     } else if (k === "Escape") {
       toggleNotes(false);
     }
   });
 
-  // Buttons: prev/next and in-slide links (data-go="<slide id>").
   document.addEventListener("click", (e) => {
     const step = e.target.closest("[data-step]");
     if (step) return go(index + Number(step.dataset.step));
-    const link = e.target.closest("[data-go]");
-    if (link) {
-      const i = slides.findIndex((s) => s.id === link.dataset.go);
-      if (i >= 0) go(i);
-    }
+    const panelBtn = e.target.closest("[data-panel]");
+    if (panelBtn) return selectPanel(panelBtn);
   });
 
   // Swipe on touch screens.
-  const deck = document.getElementById("deck");
   let sx = null;
   let sy = null;
   deck.addEventListener(
@@ -218,7 +291,7 @@
   deck.addEventListener(
     "touchend",
     (e) => {
-      if (sx === null) return;
+      if (sx === null || editing()) return;
       const dx = e.changedTouches[0].clientX - sx;
       const dy = e.changedTouches[0].clientY - sy;
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) go(index + (dx < 0 ? 1 : -1));
@@ -232,21 +305,61 @@
   });
   window.addEventListener("resize", moveInk);
 
-  // Start once the faces are in (so the opening reveal runs on the real type, fallback after 700 ms) and the
-  // gate is open. Unlocking calls begin() again.
+  // What the editor needs from the deck.
+  window.Deck = {
+    deck,
+    get slides() {
+      return slides;
+    },
+    get index() {
+      return index;
+    },
+    go,
+    rebuild,
+    newId,
+    selectPanel,
+  };
+
+  // ---------------------------------------------------------------- start
+  // Begin once the slides are loaded, the faces are in (fallback after 700 ms) and the gate is open.
+  let deckReady = false;
   let fontsReady = false;
   let began = false;
   function begin() {
-    if (began || !fontsReady || !isOpen()) return;
+    if (began || !deckReady || !fontsReady || !isOpen()) return;
     began = true;
-    requestAnimationFrame(() => requestAnimationFrame(() => go(fromHash())));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        go(fromHash());
+        if (/[?&]edit\b/.test(location.search)) openEditor();
+      })
+    );
     // The key hint fades after a few seconds.
     setTimeout(() => keys && keys.classList.add("is-hidden"), 6000);
   }
+
+  async function loadDeck() {
+    try {
+      const res = await fetch(`deck.html?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
+      deck.innerHTML = await res.text();
+    } catch (err) {
+      deck.innerHTML =
+        '<section class="slide" data-tab="Error" data-tone="smoke"><div class="slide__inner">' +
+        '<h2 class="title title--m">The slides could not load.</h2>' +
+        '<p class="lead">Reload the page. A file opened straight from disk cannot load them: serve the folder over http.</p>' +
+        "</div></section>";
+    }
+    prepare();
+    deckReady = true;
+    begin();
+  }
+
   const fontsIn = () => {
     fontsReady = true;
     begin();
   };
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fontsIn);
   setTimeout(fontsIn, 700);
+  loadDeck();
 })();

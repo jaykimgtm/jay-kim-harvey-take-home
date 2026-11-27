@@ -1,0 +1,337 @@
+/* Web editor chrome (loaded with editor.js). The ochre accent marks editor UI only; the deck stays monochrome. */
+
+html.editing {
+  --bar-h: 92px;
+  --ed-accent: #c9a46a;
+  --ed-bad: #d9a38f;
+}
+html.editing .bar,
+html.editing .keys {
+  visibility: hidden;
+}
+html.editing .slide,
+html.editing .slide.is-active,
+html.editing [data-reveal],
+html.editing .line > span {
+  transition: none !important;
+  filter: none !important;
+}
+html.editing .line {
+  overflow: visible;
+}
+html.editing .card {
+  cursor: default;
+}
+html.editing [contenteditable="true"] {
+  outline: 1px dashed rgba(244, 242, 238, 0.16);
+  outline-offset: 3px;
+  cursor: text;
+}
+html.editing [contenteditable="true"]:hover {
+  outline-color: rgba(244, 242, 238, 0.42);
+}
+html.editing [contenteditable="true"]:focus {
+  outline: 1px solid rgba(244, 242, 238, 0.75);
+}
+
+/* ------------------------------------------------------------------ toolbar */
+.ed-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--hair);
+  background: rgba(15, 14, 13, 0.94);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font: 500 12px var(--sans);
+  color: var(--on-dark-2);
+}
+.ed-badge {
+  padding: 4px 8px;
+  border: 1px solid var(--ed-accent);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ed-accent);
+}
+.ed-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding-left: 12px;
+  border-left: 1px solid var(--hair);
+}
+.ed-group__name {
+  margin-right: 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+.ed-tool {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  background: transparent;
+  font: 500 12px var(--sans);
+  color: var(--on-dark-2);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    background-color 0.2s;
+}
+.ed-tool:hover {
+  border-color: var(--on-dark);
+  color: var(--on-dark);
+}
+.ed-tool[data-danger]:hover {
+  border-color: var(--ed-bad);
+  color: var(--ed-bad);
+}
+.ed-tool--save {
+  border-color: var(--on-dark);
+  background: var(--on-dark);
+  color: var(--ink);
+}
+.ed-tool--save:hover {
+  background: transparent;
+  color: var(--on-dark);
+}
+.ed-tool--save.is-dirty::after {
+  content: " •";
+  color: var(--ed-accent);
+}
+.ed-tool:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.ed-size {
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-dark);
+}
+.ed-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+}
+.ed-select {
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  background: var(--ink);
+  font: 500 12px var(--sans);
+  color: var(--on-dark-2);
+}
+.ed-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.ed-status {
+  max-width: 340px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+}
+.ed-status.is-bad {
+  white-space: normal;
+  color: var(--ed-bad);
+}
+
+/* ------------------------------------------------------------------ selection */
+.ed-sel {
+  position: fixed;
+  z-index: 25;
+  display: none;
+  border: 1px solid var(--ed-accent);
+  pointer-events: none;
+}
+.ed-grip {
+  position: absolute;
+  top: -24px;
+  left: -1px;
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ed-accent);
+  font: 600 11px var(--sans);
+  color: var(--ink);
+  cursor: move;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+/* ------------------------------------------------------------------ slide settings drawer */
+.ed-panel {
+  position: fixed;
+  top: calc(var(--bar-h) + 8px);
+  right: 12px;
+  z-index: 30;
+  width: 300px;
+  max-height: calc(100vh - var(--bar-h) - 90px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--hair);
+  background: rgba(15, 14, 13, 0.96);
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.4s var(--ease-out);
+}
+.ed-panel.is-open {
+  transform: none;
+}
+.ed-panel__title {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--on-dark);
+}
+.ed-panel__help {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ed-label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.ed-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--hair-strong);
+  border-radius: 0;
+  background: rgba(15, 14, 13, 0.6);
+  font: 400 13.5px var(--sans);
+  color: var(--on-dark);
+}
+.ed-input:focus {
+  border-color: var(--on-dark);
+  outline: none;
+}
+.ed-notes {
+  resize: vertical;
+  line-height: 1.5;
+}
+.ed-btn {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--hair-strong);
+  border-radius: 0;
+  background: transparent;
+  font: 500 13px var(--sans);
+  color: var(--on-dark-2);
+  cursor: pointer;
+}
+.ed-btn:hover {
+  border-color: var(--on-dark);
+  color: var(--on-dark);
+}
+.ed-btn--solid {
+  border-color: var(--on-dark);
+  background: var(--on-dark);
+  color: var(--ink);
+}
+.ed-btn--solid:hover {
+  background: transparent;
+}
+.ed-btn--ghost {
+  border-color: transparent;
+  color: var(--muted);
+}
+.ed-btn--danger {
+  width: 100%;
+  margin-top: 14px;
+  border-color: rgba(217, 163, 143, 0.5);
+  color: var(--ed-bad);
+}
+.ed-btn:disabled {
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------ unlock / setup dialog */
+.ed-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 9, 8, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.ed-modal__panel {
+  width: min(470px, 100%);
+  padding: 28px;
+  border: 1px solid var(--hair-strong);
+  background: #141210;
+}
+.ed-modal__kicker {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #c9a46a;
+}
+.ed-modal__title {
+  margin: 0 0 10px;
+  font: 400 30px/1.1 var(--serif);
+  letter-spacing: -0.02em;
+  color: var(--on-dark);
+}
+.ed-modal__lead {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--on-dark-2);
+}
+.ed-modal__lead a,
+.ed-modal__lead strong {
+  color: var(--on-dark);
+}
+.ed-modal__lead em {
+  font-style: normal;
+  color: var(--on-dark);
+}
+.ed-modal__err {
+  min-height: 1.4em;
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: #d9a38f;
+}
+.ed-modal__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+@media (max-width: 860px) {
+  html.editing {
+    --bar-h: 168px;
+  }
+  .ed-panel {
+    width: calc(100vw - 24px);
+  }
+}
+@media print {
+  .ed-ui {
+    display: none !important;
+  }
+}
