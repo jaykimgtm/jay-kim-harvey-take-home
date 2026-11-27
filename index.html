@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0F0E0D">
+  <title>Hiring the first Japan GTM team · Jay Kim</title>
+  <meta name="description" content="Take-home exercise review for Harvey Tokyo: intake, sourcing and outreach for the first Japan go-to-market hires.">
+  <link rel="preload" href="fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=4">
+  <!--
+    Access gate: a door, not a vault (the repo is public, so the page source is readable by anyone who looks).
+    Only SHA-256("jay-kim-harvey-take-home:" + code) lives here, never the code. To change the code, put the new
+    digest in this meta tag (recipe in README.md). The boot script below sets data-gate before first paint.
+  -->
+  <meta name="gate-digest" content="06ed3f16dd035db2b1cabec13378b603ae20d500277765a17dc924a43e811d98">
+  <script>
+    (function () {
+      var d = document.documentElement;
+      var want = document.querySelector('meta[name="gate-digest"]').content;
+      var open = false;
+      try { open = localStorage.getItem("jk-harvey-take-home-gate") === want; } catch (e) {}
+      d.setAttribute("data-gate", open ? "open" : "locked");
+    })();
+  </script>
+</head>
+<body data-tone="dusk">
+  <!-- Painted ground: abstract dusk landscape in CSS, one layer per tone, cross-faded as slides change. -->
+  <div class="ground" aria-hidden="true">
+    <div class="ground__layer" data-tone="dusk"></div>
+    <div class="ground__layer" data-tone="smoke"></div>
+    <div class="ground__layer" data-tone="moss"></div>
+    <div class="ground__layer" data-tone="ochre"></div>
+    <div class="ground__layer" data-tone="slate"></div>
+    <div class="ground__grain"></div>
+    <div class="ground__vignette"></div>
+  </div>
+
+  <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <form class="gate__panel" id="gate-form" autocomplete="off" novalidate>
+      <p class="gate__brand">Harvey</p>
+      <h1 class="gate__title" id="gate-title">Take-home review</h1>
+      <p class="gate__sub">Jay Kim · Tokyo GTM &amp; G&amp;A</p>
+      <label class="gate__label" for="gate-code">Access code</label>
+      <div class="gate__row">
+        <input class="gate__input" id="gate-code" name="code" type="password" inputmode="numeric" autocomplete="off" spellcheck="false" required>
+        <button class="gate__btn" type="submit">Open</button>
+      </div>
+      <p class="gate__error" id="gate-error" role="alert" aria-live="assertive"></p>
+      <noscript><p class="gate__error">This review needs JavaScript to open.</p></noscript>
+    </form>
+  </div>
+
+  <header class="bar">
+    <a class="bar__brand" href="#1" aria-label="Back to the first slide">Harvey</a>
+    <p class="bar__meta"><span>Tokyo GTM &amp; G&amp;A</span><span class="bar__dot" aria-hidden="true"></span><span>Take-home review</span></p>
+    <div class="bar__progress" aria-hidden="true"><i></i></div>
+  </header>
+
+  <main class="deck" id="deck">
+
+    <!-- 01 · Cover -->
+    <section class="slide slide--cover" id="cover" data-tab="Cover" data-tone="dusk" aria-label="Cover">
+      <div class="slide__inner cover">
+        <h1 class="cover__title">
+          <span class="line"><span>Hiring the first</span></span>
+          <span class="line"><span>Japan go-to-market team</span></span>
+        </h1>
+        <div class="cover__foot">
+          <span class="rule" data-reveal></span>
+          <div class="cover__meta" data-reveal>
+            <strong>Jay Kim</strong>
+            <span>Take-home exercise review</span>
+            <span class="cover__right">Tokyo GTM &amp; G&amp;A</span>
+          </div>
+        </div>
+      </div>
+      <template class="notes">Open: I treated this as a real first week at Harvey Tokyo. Three parts, one logic. I'll spend most time on intake and the AE search, then show the outreach as I'd actually send it.</template>
+    </section>
+
+    <!-- 02 · Three parts, one logic -->
+    <section class="slide slide--triad" id="three-parts" data-tab="Three parts" data-tone="smoke" aria-label="Three parts, one logic">
+      <div class="slide__inner">
+        <header class="head">
+          <p class="eyebrow" data-reveal>The exercise</p>
+          <h2 class="title"><span class="line"><span>Three parts, one logic</span></span></h2>
+        </header>
+
+        <ol class="triad">
+          <li class="triad__cell" data-reveal>
+            <button class="card" type="button" data-go="intake">
+              <span class="card__part">Part 1 · Intake</span>
+              <span class="card__word">Clarity</span>
+              <span class="card__q">Do we agree on exactly who we are hiring, and what success looks like?</span>
+              <span class="card__go">Open part 1<span class="card__arrow" aria-hidden="true">→</span></span>
+            </button>
+          </li>
+          <li class="triad__x" aria-hidden="true" data-reveal>×</li>
+          <li class="triad__cell" data-reveal>
+            <button class="card" type="button" data-go="sourcing">
+              <span class="card__part">Part 2 · Sourcing</span>
+              <span class="card__word">Reach</span>
+              <span class="card__q">Where do those people sit today, and how do we get to them?</span>
+              <span class="card__go">Open part 2<span class="card__arrow" aria-hidden="true">→</span></span>
+            </button>
+          </li>
+          <li class="triad__x" aria-hidden="true" data-reveal>×</li>
+          <li class="triad__cell" data-reveal>
+            <button class="card" type="button" data-go="outreach">
+              <span class="card__part">Part 3 · Outreach</span>
+              <span class="card__word">Reason</span>
+              <span class="card__q">Why would a senior person leave a safe seat for a new office?</span>
+              <span class="card__go">Open part 3<span class="card__arrow" aria-hidden="true">→</span></span>
+            </button>
+          </li>
+        </ol>
+
+        <p class="triad__note" data-reveal>Multiplied, not added: if any one of the three is zero, the hire is zero.</p>
+      </div>
+      <template class="notes">Three parts, one logic. Clarity: the hiring manager and I agree on who we hire and what success looks like. Reach: where those people sit today and how we get to them. Reason: why a senior person would leave a safe seat for a new office. They multiply: miss any one and the hire fails.</template>
+    </section>
+
+    <!-- 03 · Part 1 opener -->
+    <section class="slide slide--part" id="intake" data-tab="Intake" data-tone="moss" aria-label="Part 1, Intake">
+      <div class="slide__inner part">
+        <p class="part__num" data-reveal>01</p>
+        <div class="part__body">
+          <p class="eyebrow" data-reveal>Part 1 · Intake &amp; expectation setting</p>
+          <h2 class="part__word"><span class="line"><span>Clarity</span></span></h2>
+          <p class="part__q" data-reveal>Do we agree on exactly who we are hiring, and what success looks like?</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 · Part 2 opener -->
+    <section class="slide slide--part" id="sourcing" data-tab="Sourcing" data-tone="ochre" aria-label="Part 2, Sourcing">
+      <div class="slide__inner part">
+        <p class="part__num" data-reveal>02</p>
+        <div class="part__body">
+          <p class="eyebrow" data-reveal>Part 2 · Sourcing · Enterprise AE</p>
+          <h2 class="part__word"><span class="line"><span>Reach</span></span></h2>
+          <p class="part__q" data-reveal>Where do those people sit today, and how do we get to them?</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 · Part 3 opener -->
+    <section class="slide slide--part" id="outreach" data-tab="Outreach" data-tone="slate" aria-label="Part 3, Outreach">
+      <div class="slide__inner part">
+        <p class="part__num" data-reveal>03</p>
+        <div class="part__body">
+          <p class="eyebrow" data-reveal>Part 3 · Outreach</p>
+          <h2 class="part__word"><span class="line"><span>Reason</span></span></h2>
+          <p class="part__q" data-reveal>Why would a senior person leave a safe seat for a new office?</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabs" aria-label="Slides">
+    <div class="tabs__track" role="tablist" aria-label="Jump to a slide">
+      <span class="tabs__ink" aria-hidden="true"></span>
+    </div>
+    <div class="tabs__ctrl">
+      <span class="tabs__count" aria-live="polite"></span>
+      <button class="ctl" type="button" data-step="-1" aria-label="Previous slide">←</button>
+      <button class="ctl" type="button" data-step="1" aria-label="Next slide">→</button>
+    </div>
+  </nav>
+
+  <aside class="notes-panel" id="notes" aria-label="Speaker notes" aria-hidden="true">
+    <p class="notes-panel__label">Speaker notes</p>
+    <p class="notes-panel__body"></p>
+  </aside>
+
+  <p class="keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd> move <span>·</span> <kbd>1</kbd>–<kbd>9</kbd> jump <span>·</span> <kbd>N</kbd> notes <span>·</span> <kbd>F</kbd> full screen</p>
+
+  <script src="app.js?v=4" defer></script>
+</body>
+</html>
