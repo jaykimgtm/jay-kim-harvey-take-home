@@ -1,7 +1,7 @@
 // Harvey take-home review: deck runtime.
 // The slides live in deck.html, fetched at start so the web editor can save them. Tabs are built from the
 // <section class="slide"> elements: data-tab = tab label, data-tone = painted ground.
-// Keys: ← → ↑ ↓ PageUp PageDown Space move, Home/End, 1–9 jump, N notes, F full screen, R switch role,
+// Keys: ← → ↑ ↓ PageUp PageDown Space move, Home/End, 1–9 jump, N notes, F full screen, R switch role (if a slide has a role switch),
 // E edit (asks for the save code; also ?edit in the URL). Hash #n or #slide-id deep-links.
 (() => {
   const html = document.documentElement;
